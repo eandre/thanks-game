@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class MissileScript : MonoBehaviour {
 	// Inspector configuration
 	[SerializeField] private float speed;    // Speed at which the missile moves (units/sec)
@@ -8,7 +9,14 @@ public class MissileScript : MonoBehaviour {
 
 	// Private member variables
 	private float lifetime; // Lifetime of missile until it self-explodes
+	
+	// Explode triggers the missile explosion
+	private void Explode() {
+		// Just destroy it for now; we'll add explosion effects later
+		Destroy (gameObject);
+	}
 
+	// Start is called on initialization
 	void Start() {
 		lifetime = duration;
 	}
@@ -25,15 +33,11 @@ public class MissileScript : MonoBehaviour {
 
 	// FixedUpdate runs every physics update
 	void FixedUpdate() {
+		// Decrease lifetime during physics updates instead of frame updates
+		// so that we're not affected by floating point errors
 		lifetime -= Time.fixedDeltaTime;
 		if (lifetime <= 0) {
 			Explode ();
 		}
-	}
-
-	// Explode triggers the missile explosion
-	private void Explode() {
-		// Just destroy it for now; we'll add explosion effects later
-		Destroy (gameObject);
 	}
 }

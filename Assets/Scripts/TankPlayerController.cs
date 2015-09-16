@@ -8,11 +8,13 @@ public class TankPlayerController : MonoBehaviour {
 	// Script that actually carries out the tank movement
 	private TankScript tankScript;
 
+	// Start is called on initialization
 	void Start() {
 		// Get reference to our tank script
 		tankScript = GetComponent<TankScript> ();
 	}
 
+	// Update is called every frame
 	void Update() {
 		// Use horizontal input to set turn speed
 		float x = Input.GetAxis ("Horizontal");

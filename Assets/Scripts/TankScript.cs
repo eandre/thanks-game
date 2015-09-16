@@ -6,6 +6,8 @@ using System.Collections;
 // the player or AI to control the tank, without breaking the
 // game rules of how a tank should move, and abstracting away
 // from how the controlling is done (key bindings etc).
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Health))]
 public class TankScript : MonoBehaviour {
 	// Inspector configuration
 	[SerializeField] private float maxSpeed;           // The maximum forward/backward speed in units/second
@@ -13,29 +15,11 @@ public class TankScript : MonoBehaviour {
 
 	// Cached components
 	FireTriggerScript fireTrigger;
-
-	void Start() {
-		fireTrigger = GetComponentInChildren<FireTriggerScript> ();
-	}
+	Health health;
 
 	// Private member variables
 	private float speed;     // Current forward/backward speed (between -1 and 1)
 	private float turnSpeed; // Current left/right turning speed (between -1 and 1)
-
-	// Update is called every frame
-	void Update () {
-		// Compute distance we moved since last frame
-		float dist = speed * maxSpeed * Time.deltaTime;
-
-		// Perform translation in local space so we move in line with our rotation
-		transform.Translate (0, dist, 0, Space.Self);
-
-		// Compute angle we rotated since last frame (inverted since we want left to be a positive angle)
-		float angle = -turnSpeed * maxTurn * Time.deltaTime;
-
-		// Perform the rotation around the Z axis
-		transform.Rotate (0, 0, angle);
-	}
 
 	// SetSpeed controls the forward/backward speed of the tank,
 	// as a percentage of maximum speed (from -1 to 1).
@@ -57,5 +41,45 @@ public class TankScript : MonoBehaviour {
 	public void Fire() {
 		// Simply forward this call to our fire trigger
 		fireTrigger.Fire ();
+	}
+
+	// Start is called on initialization
+	void Start() {
+		fireTrigger = GetComponentInChildren<FireTriggerScript> ();
+		health = GetComponent<Health> ();
+		health.DamageTakenListener += this.OnDamageTaken;
+	}
+	
+	// Update is called every frame
+	void Update () {
+		// Compute distance we moved since last frame
+		float dist = speed * maxSpeed * Time.deltaTime;
+		
+		// Perform translation in local space so we move in line with our rotation
+		transform.Translate (0, dist, 0, Space.Self);
+		
+		// Compute angle we rotated since last frame (inverted since we want left to be a positive angle)
+		float angle = -turnSpeed * maxTurn * Time.deltaTime;
+		
+		// Perform the rotation around the Z axis
+		transform.Rotate (0, 0, angle);
+	}
+
+	// OnTriggerEnter2D is called when a trigger object collides with us
+	void OnTriggerEnter2D(Collider2D coll) {
+		if (coll.gameObject.CompareTag ("Bullet")) {
+			// We got hit!
+			health.TakeDamage(5);
+
+			// Destroy the bullet
+			Destroy (coll.gameObject);
+		}
+	}
+
+	void OnDamageTaken(int health, int damage) {
+		if (health <= 0) {
+			// Destroy ourselves if we run out of health
+			Destroy (gameObject);
+		}
 	}
 }
